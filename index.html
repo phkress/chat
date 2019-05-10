@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Chat</title>
+    <script src="node_modules/socket.io-client/dist/socket.io.js"></script>
+  <style media="screen">
+    html, body {
+  height: 100%;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+#chat {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+input {
+  width: 600px;
+  border: 1px solid #ddd;
+  height: 50px;
+  padding: 0 20px;
+  font-size: 14px;
+}
+
+button {
+  width: 600px;
+  height: 50px;
+  font-size: 14px;
+  background: #069;
+  text-align: center;
+  line-height: 50px;
+  font-weight: bold;
+  color: #FFF;
+  margin-top: 10px;
+}
+
+.messages {
+  width: 600px;
+  height: 400px;
+  margin: 20px 0;
+  border: 1px solid #ddd;
+  padding: 20px;
+  overflow-y: auto;
+
+  </style>
+    <script>
+      //variaveis
+        let socket = {};
+        //load da Pagina
+        window.onload = () => {
+            socket = io.connect('192.168.15.101:3000')
+            socket.on('connect', () => {
+                console.log('conectado!')
+            });
+            //Prevenção de refresh por submit
+            document.getElementById("submitForm").addEventListener("click",
+              function(event){
+                event.preventDefault();
+                var autor = document.getElementById('username').value;
+                var msg = document.getElementById('message').value;
+                if(autor.length && msg.length){
+                  var msgObj = {
+                      autor : autor,
+                      message: msg,
+                  };
+                  renderMessage(msgObj);
+                  socket.emit('sendMessage', msgObj);
+                }
+              }
+            );
+            socket.on('previusMessage', function(messages){
+              for(message of messages){
+                renderMessage(message);
+              }
+            });
+            socket.on('receiveMessage',function(message){
+              renderMessage(message);
+            });
+
+        }
+
+        function renderMessage(message){
+          let newEl = document.createElement("div");
+          newEl.innerHTML ='<strong>'+message.autor+'</strong>:'+message.message;
+          document.querySelector(".messages").appendChild(newEl);
+        }
+    </script>
+</head>
+<body>
+  <form id="chat">
+      <input type="text" id="username" placeholder="Autor">
+      <div class="messages"></div>
+      <input type="text" id="message" placeholder="Mensagem!">
+      <button id="submitForm" type="submit">enviar</button>
+  </form>
+</body>
+
+</html>
